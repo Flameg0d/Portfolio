@@ -1,0 +1,14 @@
+/* Works.css */
+.works-container {
+  min-height: 100vh; /* Full height */
+  overflow-y: auto; /* Allow vertical scrolling */
+  background-image: url('../images/2.png'); /* Background image */
+  background-size: cover; /* Cover the entire area */
+  background-position: center; /* Center the image */
+}
+
+.works-overlay {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.4); /* Dark overlay */
+}
