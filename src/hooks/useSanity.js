@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { createClient } from '@sanity/client';
 
 const client = createClient({
@@ -13,7 +13,8 @@ export const useSanity = (query) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const fetchData = async () => {
+  // Memoize fetchData using useCallback
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       const result = await client.fetch(query);
@@ -23,7 +24,7 @@ export const useSanity = (query) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [query]); // Add query as a dependency
 
   // Mutate function to update the local state
   const mutate = (newData) => {
@@ -32,7 +33,7 @@ export const useSanity = (query) => {
 
   useEffect(() => {
     fetchData();
-  }, [query, mutate]); // Add mutate to the dependency array
+  }, [fetchData]); // Include fetchData in the dependency array
 
   return { data, loading, error, mutate, fetchData };
 };
