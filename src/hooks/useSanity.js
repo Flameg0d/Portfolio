@@ -32,7 +32,7 @@ export const useSanity = (query) => {
 
   useEffect(() => {
     fetchData();
-  }, [query]);
+  }, [query, mutate]); // Add mutate to the dependency array
 
   return { data, loading, error, mutate, fetchData };
 };

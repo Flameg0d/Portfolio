@@ -55,68 +55,66 @@ export default function Recommendations() {
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  if (!validateForm()) return;
+    e.preventDefault();
+    if (!validateForm()) return;
 
-  setIsSubmitting(true);
-  setErrors(prev => ({...prev, submit: ''}));
+    setIsSubmitting(true);
+    setErrors(prev => ({...prev, submit: ''}));
 
-  try {
-    const response = await fetch(
-      `https://${process.env.REACT_APP_SANITY_PROJECT_ID}.api.sanity.io/v1/data/mutate/${process.env.REACT_APP_SANITY_DATASET}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.REACT_APP_SANITY_TOKEN}`
-        },
-        body: JSON.stringify({
-          mutations: [{
-            create: {
-              _type: 'recommendation',
-              recommenderName: formData.recommenderName,
-              recommenderTitle: formData.recommenderTitle,
-              text: formData.text
-            }
-          }]
-        })
+    try {
+      const response = await fetch(
+        `https://${process.env.REACT_APP_SANITY_PROJECT_ID}.api.sanity.io/v1/data/mutate/${process.env.REACT_APP_SANITY_DATASET}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.REACT_APP_SANITY_TOKEN}`
+          },
+          body: JSON.stringify({
+            mutations: [{
+              create: {
+                _type: 'recommendation',
+                recommenderName: formData.recommenderName,
+                recommenderTitle: formData.recommenderTitle,
+                text: formData.text
+              }
+            }]
+          })
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Sanity API Error:', errorData);
+        throw new Error(errorData.message || 'Submission failed');
       }
-    );
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('Sanity API Error:', errorData);
-      throw new Error(errorData.message || 'Submission failed');
+      const newRecommendation = {
+        _id: Date.now().toString(), // Temporary ID until fetched from Sanity
+        recommenderName: formData.recommenderName,
+        recommenderTitle: formData.recommenderTitle,
+        text: formData.text,
+        _createdAt: new Date().toISOString() // Set current date
+      };
+
+      // Update recommendations state using mutate
+      mutate(newRecommendation);
+
+      // Clear form data
+      setFormData({ recommenderName: '', text: '', recommenderTitle: '' });
+      
+    } catch (error) {
+      console.error('Submission failed:', error);
+      setErrors(prev => ({
+        ...prev,
+        submit: error.message.includes('session') 
+          ? 'Authentication failed - check your API token'
+          : 'Failed to submit. Please try again.'
+      }));
+    } finally {
+      setIsSubmitting(false);
     }
-
-    // Inside handleSubmit
-    const newRecommendation = {
-    _id: Date.now().toString(), // Temporary ID until fetched from Sanity
-    recommenderName: formData.recommenderName,
-    recommenderTitle: formData.recommenderTitle,
-    text: formData.text,
-    _createdAt: new Date().toISOString() // Set current date
-    };
-
-// Update recommendations state using mutate
-    mutate(newRecommendation);
-
-    // Clear form data
-    setFormData({ recommenderName: '', text: '', recommenderTitle: '' });
-    
-  } catch (error) {
-    console.error('Submission failed:', error);
-    setErrors(prev => ({
-      ...prev,
-      submit: error.message.includes('session') 
-        ? 'Authentication failed - check your API token'
-        : 'Failed to submit. Please try again.'
-    }));
-  } finally {
-    setIsSubmitting(false);
-  }
-};
-
+  };
 
   return (
     <section className="my-16" id="recommendations">
