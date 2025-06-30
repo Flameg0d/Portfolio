@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
-import { createClient } from '@sanity/client'; // Use named export
+import { createClient } from '@sanity/client';
 
-const client = createClient({ // Use createClient to instantiate the client
+const client = createClient({
   projectId: process.env.REACT_APP_SANITY_PROJECT_ID,
   dataset: process.env.REACT_APP_SANITY_DATASET,
   useCdn: true,
-  apiVersion: '2021-03-25', // Use a specific API version
+  apiVersion: '2021-03-25',
 });
 
 export const useSanity = (query) => {
@@ -13,7 +13,7 @@ export const useSanity = (query) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const mutate = async () => {
+  const fetchData = async () => {
     setLoading(true);
     try {
       const result = await client.fetch(query);
@@ -25,9 +25,14 @@ export const useSanity = (query) => {
     }
   };
 
+  // Mutate function to update the local state
+  const mutate = (newData) => {
+    setData(prevData => [newData, ...prevData]); // Add new data to the beginning of the array
+  };
+
   useEffect(() => {
-    mutate();
+    fetchData();
   }, [query]);
 
-  return { data, loading, error, mutate };
+  return { data, loading, error, mutate, fetchData };
 };
